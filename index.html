@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0,user-scalable=no,minimal-ui">
+	<title>學習移動端的滑動事件</title>
+	<script type="text/javascript">
+		(function flexible (window, document) {
+		  var docEl = document.documentElement
+		  var dpr = window.devicePixelRatio || 1
+
+		  // adjust body font size
+		  function setBodyFontSize () {
+		    if (document.body) {
+		      document.body.style.fontSize = (12 * dpr) + 'px'
+		    }
+		    else {
+		      document.addEventListener('DOMContentLoaded', setBodyFontSize)
+		    }
+		  }
+		  setBodyFontSize();
+
+		  // set 1rem = viewWidth / 10
+		  function setRemUnit () {
+		    var rem = docEl.clientWidth / 5
+		    docEl.style.fontSize = rem + 'px'
+		    alert(rem);
+		  }
+
+		  setRemUnit()
+
+		  // reset rem unit on page resize
+		  window.addEventListener('resize', setRemUnit)
+		  window.addEventListener('pageshow', function (e) {
+		    if (e.persisted) {
+		      setRemUnit()
+		    }
+		  })
+
+		  // detect 0.5px supports
+		  if (dpr >= 2) {
+		    var fakeBody = document.createElement('body')
+		    var testElement = document.createElement('div')
+		    testElement.style.border = '.5px solid transparent'
+		    fakeBody.appendChild(testElement)
+		    docEl.appendChild(fakeBody)
+		    if (testElement.offsetHeight === 1) {
+		      docEl.classList.add('hairlines')
+		    }
+		    docEl.removeChild(fakeBody)
+		  }
+		}(window, document))
+
+	</script>
+	<style type="text/css">
+	* {
+		margin: 0;
+		padding: 0;
+	}
+		div.box {
+			position: relative;
+			top: 0;
+			left: 0;
+			width: 300px;
+			height: 300px;
+			margin: 0px auto;
+			background-color: red;
+		}
+		p.tips {
+			position: absolute;
+			top: -40px;
+			width: 100%;
+			height: 40px;
+			/*background-color: green;*/
+		}
+	</style>
+</head>
+<body>
+	<p class="tips"></p>
+	<div class="box"></div>
+	<!-- <div style="height: 1200px;"></div> -->
+	<p>我在底部</p>
+	<script type="text/javascript">
+		let div = document.querySelector('div');
+		let p = document.querySelector('p');
+
+		var page = {
+			init: function () {
+				this.bindEvent();
+			},
+			bindEvent: function () {
+				var _this = this;
+				div.addEventListener('touchstart', function (e) {
+					_this.startTime = new Date() * 1;
+					_this.startPageY = e.touches[0].pageY;
+				})
+
+				div.addEventListener('touchmove', function (e) {
+					_this.moveDistance = e.touches[0].pageY - _this.startPageY;
+					if (_this.moveDistance > 50) {
+						p.innerHTML = '鬆開刷新';
+					} else {
+						p.innerHTML = '';
+					}
+					if (_this.moveDistance > 0) {
+						div.style.top = _this.moveDistance > 200 ? 200 : _this.moveDistance + 'px';
+						p.style.top = (-40 + _this.moveDistance) > 160 ? 610 : (-40 + _this.moveDistance) + 'px';
+					}
+				})
+
+				div.addEventListener('touchend', function (e) {
+					console.log(e);
+					_this.endTime = new Date() * 1
+					if ((_this.endTime - _this.startTime > 800) && _this.moveDistance > 50) {
+						console.log('下拉刷新');
+					}
+					div.style.top = 0 + 'px';
+					p.style.top = '-40px';
+
+
+				})
+
+				window.addEventListener('scroll', function () {
+					console.log(document.documentElement.scrollTop);
+				})
+			}
+		}
+		page.init();
+		
+	</script>
+</body>
+</html>
